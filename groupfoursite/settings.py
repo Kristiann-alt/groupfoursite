@@ -85,6 +85,9 @@ DATABASES = {
     }
 }
 
+APPEND_SLASH = False
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.254.119']
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -126,3 +129,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/user/list/'
+LOGOUT_REDIRECT_URL = '/login/'
