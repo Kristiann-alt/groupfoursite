@@ -13,10 +13,9 @@ Users List
 <div class="p-2 sm:ml-64">
     <div class="relative overflow-x-auto rounded-sm shadow-sm">
         <h2 class="text-4xl font-semibold text-center mb-3">User Lists</h2>
-        <p class="text-sm text-left mb-2">Users in list: {{ total_users }}</p>
             <form method="get" class="flex mb-4">
                 <input type="text" name="search" id="searchInput" placeholder="Search by name, email, address, contact, or gender..." value="{{ search_query }}" class="bg-white px-3 py-2 border rounded-l-sm focus:outline-none w-full">
-                <button type="submit" class="bg-blue-700 text-white px-4 py-2 rounded-r-sm">Search</button>
+                <button type="submit" class="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-r-sm">Search</button>
             </form>
 
             <div class="overflow-x-auto w-full">
@@ -42,8 +41,8 @@ Users List
                   <td class="px-6 py-3">{{ user.contact_number }}</td>
                   <td class="px-6 py-3">{{ user.email }}</td>
                   <td class="px-6 py-3">
-                    <a href="{% url 'edit_user' user.user_id %}" class="bg-green-600 px-2 py-1 text-white rounded">Edit</a>
-                    <a href="{% url 'delete_user' user.user_id %}" class="bg-red-600 px-2 py-1 text-white rounded">Delete</a>
+                    <a href="{% url 'edit_user' user.user_id %}" class="bg-green-500 px-2 py-1 text-white hover:bg-green-600 rounded">Edit</a>
+                    <a href="{% url 'delete_user' user.user_id %}" class="bg-red-500 px-2 py-1 text-white hover:bg-red-600 rounded">Delete</a>
                   </td>
                 </tr>  
                 {% empty %}             
