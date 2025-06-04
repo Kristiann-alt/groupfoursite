@@ -7,15 +7,16 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Genders, Users
 from django.db.models import Q
 from django.http import HttpResponse
+from django.contrib.auth.hashers import check_password
 
 import re 
 
-
+@login_required
 def gender_list(request):
     genders = Genders.objects.all()
     return render(request, 'gender/GendersList.html', {'genders': genders})
 
-
+@login_required
 def add_gender(request):
     if request.method == 'POST':
         gender_name = request.POST.get('gender')
@@ -25,7 +26,7 @@ def add_gender(request):
             return redirect('gender_list')
     return render(request, 'gender/AddGender.html')
 
-
+@login_required
 def user_list(request):
     search_query = request.GET.get('search', '').strip()
 
@@ -52,7 +53,7 @@ def user_list(request):
         page_obj = paginator.page(paginator.num_pages)
 
     return render(request, 'user/UsersList.html', {'page_obj': page_obj, 'search_query': search_query, 'total_users': users.count()})
-
+@login_required
 def add_user(request):
     try:
         genders = Genders.objects.all()
@@ -100,7 +101,7 @@ def add_user(request):
 
     except Exception as e:
         return HttpResponse(f'Error occurred during adding of user: {e}')
-
+@login_required
 def edit_user(request, userId):
     try:
         user = Users.objects.get(user_id=userId)
@@ -137,7 +138,7 @@ def edit_user(request, userId):
 
     except Exception as e:
         return HttpResponse(f'Error occurred during user edit: {e}')
-
+@login_required
 def edit_gender(request, genderId):
     gender = get_object_or_404(Genders, pk=genderId)
     if request.method == 'POST':
@@ -146,17 +147,21 @@ def edit_gender(request, genderId):
             gender.gender = gender_name
             gender.save()
             messages.success(request, 'Gender updated successfully!')
-            return redirect('gender_list')
+            return redirect('/gender/list')
     return render(request, 'gender/EditGender.html', {'gender': gender})
 
+@login_required
 def delete_gender(request, genderId):
+
     gender = get_object_or_404(Genders, pk=genderId)
+    
     if request.method == 'POST':
         gender.delete()
         messages.success(request, 'Gender deleted successfully!')
-        return redirect('gender_list')
+        return redirect('/gender/list')
     return render(request, 'gender/DeleteGender.html', {'gender': gender})
 
+@login_required
 def delete_user(request, userId):
     try:
         user = Users.objects.get(user_id=userId)
@@ -191,24 +196,44 @@ def change_password(request, userId):
             user.password = make_password(new_password)
             user.save()
             messages.success(request, 'Password changed successfully.')
-            return redirect('user_list')
+            return redirect('/user/list')
 
     return render(request, 'user/ChangePassword.html', {'user': user})
 
+from django.contrib.auth.hashers import check_password
+@login_required
 def login_view(request):
+    if request.session.get('user_id'):
+        return redirect('/user/list')
+
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user:
-            login(request, user)
-            return redirect('home')
-        messages.error(request, 'Invalid credentials')
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '').strip()
+
+        if not username or not password:
+            messages.error(request, 'Username and password are required.')
+            return render(request, 'login.html')
+
+        try:
+            user = Users.objects.get(username=username)
+            if check_password(password, user.password):
+                request.session['user_id'] = user.user_id
+                request.session['username'] = user.username
+                messages.success(request, 'Login successful!')
+                return redirect('/user/list')
+            else:
+                messages.error(request, 'Invalid credentials')
+        except Users.DoesNotExist:
+            messages.error(request, 'Invalid credentials')
     return render(request, 'login.html')
 
+
+
 def logout_view(request):
-    logout(request)
+    request.session.flush()
+    messages.success(request, 'You have been logged out.')
     return redirect('login')
+
 
 def signup_view(request):
     if request.method == 'POST':
@@ -227,4 +252,6 @@ def signup_view(request):
     return render(request, 'user/Signup.html', {'genders': genders})
 
 def home(request):
+    if not request.session.get('user_id'):
+        return redirect('login')
     return render(request, 'home.html')
